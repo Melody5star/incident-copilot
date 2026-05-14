@@ -1,0 +1,38 @@
+# Google Cloud / ADK
+google-cloud-aiplatform
+google-adk
+google-auth
+
+# Web framework
+fastapi
+uvicorn[standard]
+httpx
+
+# UI
+streamlit
+
+# MCP
+mcp
+
+# Observability / Arize
+arize-phoenix
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+
+# Elastic (v8 client for ES 8.x server)
+elasticsearch>=8.0,<9.0
+
+# GitLab
+python-gitlab
+
+# Utilities
+pydantic
+pydantic-settings
+python-dotenv
+tenacity
+structlog
+
+# Dev / testing
+pytest
+pytest-asyncio
+ruff
