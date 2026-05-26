@@ -1,12 +1,13 @@
 """Streamlit demo frontend for Incident Copilot."""
 
 import json
+import os
 import time
 
 import httpx
 import streamlit as st
 
-API_BASE = "http://localhost:8080"
+API_BASE = os.getenv("API_BASE_URL", "http://localhost:8080")
 
 st.set_page_config(
     page_title="Incident Copilot",
