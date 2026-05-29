@@ -10,7 +10,7 @@ load_dotenv(pathlib.Path(__file__).parent.parent / ".env")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from pydantic import BaseModel
 from agent import create_incident_agent
 
@@ -41,6 +41,11 @@ app.add_middleware(
 class TriageRequest(BaseModel):
     message: str
     session_id: str = "default"
+
+
+@app.get("/", include_in_schema=False)
+async def root() -> RedirectResponse:
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
