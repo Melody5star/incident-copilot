@@ -34,12 +34,21 @@ async def _auto_seed() -> None:
         print(f"[startup] Auto-seed skipped: {exc}")
 
 
+async def _reseed_loop() -> None:
+    """Re-seed every 8 minutes so spike data never expires during warm container."""
+    while True:
+        await asyncio.sleep(8 * 60)
+        await _auto_seed()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global _agent
     _agent = create_incident_agent()
     await _auto_seed()
+    task = asyncio.create_task(_reseed_loop())
     yield
+    task.cancel()
 
 
 app = FastAPI(
