@@ -1,5 +1,6 @@
 """FastAPI backend — streams agent responses as Server-Sent Events."""
 
+import asyncio
 import pathlib
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
@@ -17,10 +18,27 @@ from agent import create_incident_agent
 _agent = None
 
 
+async def _auto_seed() -> None:
+    """Seed Elasticsearch with fresh demo data on every cold start."""
+    try:
+        import sys, importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "seed_elasticsearch",
+            pathlib.Path(__file__).parent.parent / "scripts" / "seed_elasticsearch.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        await mod.seed()
+        print("[startup] Elasticsearch seeded with fresh incident data.")
+    except Exception as exc:
+        print(f"[startup] Auto-seed skipped: {exc}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global _agent
     _agent = create_incident_agent()
+    await _auto_seed()
     yield
 
 
