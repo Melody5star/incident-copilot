@@ -2,13 +2,15 @@
 
 import asyncio
 import json
+import os
 import random
 from datetime import datetime, timedelta, timezone
 
 from elasticsearch import AsyncElasticsearch
 
 INDEX = "logs-2026.05.11"
-ES_HOST = "http://localhost:9200"
+ES_HOST = os.getenv("ELASTIC_HOSTS", "http://localhost:9200")
+ES_API_KEY = os.getenv("ELASTIC_API_KEY", "")
 
 SERVICES = ["payment-service", "auth-service", "cart-service", "user-service", "notification-service"]
 
@@ -70,7 +72,10 @@ def make_log(service: str, level: str, ts: datetime, error_template: dict | None
 
 
 async def seed():
-    es = AsyncElasticsearch(hosts=[ES_HOST])
+    es = AsyncElasticsearch(
+        hosts=[ES_HOST],
+        api_key=ES_API_KEY if ES_API_KEY else None,
+    )
 
     # Clear stale data so the baseline isn't inflated by previous seed runs
     try:
@@ -117,7 +122,7 @@ async def seed():
     print(f"Indexed {len(ops)//2} docs, {len(errors)} errors")
 
     # Verify
-    count = await es.count(index="logs-*", query={"terms": {"log.level": ["ERROR", "CRITICAL", "FATAL"]}})
+    count = await es.count(index="logs-*", query={"terms": {"log.level.keyword": ["ERROR", "CRITICAL", "FATAL"]}})
     print(f"Total error docs in logs-*: {count['count']}")
 
     await es.close()

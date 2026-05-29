@@ -17,8 +17,11 @@ def _get_client() -> AsyncElasticsearch:
             cloud_id=settings.elastic_cloud_id,
             api_key=settings.elastic_api_key,
         )
-    # Self-hosted (local Docker or Cloud Run sidecar)
-    return AsyncElasticsearch(hosts=[settings.elastic_hosts])
+    # Self-hosted or Serverless Cloud endpoint
+    return AsyncElasticsearch(
+        hosts=[settings.elastic_hosts],
+        api_key=settings.elastic_api_key if settings.elastic_api_key else None,
+    )
 
 
 async def search_error_logs(
