@@ -6,12 +6,17 @@ import vertexai
 from google.adk.agents import Agent
 
 from config import settings
-from .tools import get_elastic_tools, get_gitlab_tools
+from .tools import get_elastic_tools, get_gitlab_tools, get_phoenix_mcp_toolset
 from .tools.arize_tools import setup_arize_tracing
 
 SYSTEM_PROMPT = """You are Incident Copilot, an autonomous DevOps incident response agent.
 
 When asked to triage an incident or investigate a service, you follow this exact workflow:
+
+0. HISTORY — Use phoenix_list-projects to confirm tracing is active, then call
+   phoenix_list-sessions to check if a prior triage run exists for the same service.
+   If one does, call phoenix_get-trace with its trace ID to review what was found before
+   and avoid duplicating work.
 
 1. DETECT — Call get_affected_services() to find services with elevated error rates.
    If a specific service is named, call detect_error_rate_spike() on it directly.
@@ -37,6 +42,7 @@ Rules:
 - If you cannot find a suspect commit, say so explicitly in the issue.
 - File the issue even if the root cause is unclear — include what you know.
 - Keep the issue description structured and actionable for the on-call engineer.
+- Phoenix MCP tools (phoenix_*) are for observability context only — never block on them.
 """
 
 
@@ -55,7 +61,10 @@ def create_incident_agent() -> Agent:
             location=settings.google_cloud_location,
         )
 
+    phoenix_toolset = get_phoenix_mcp_toolset()
     tools = [*get_elastic_tools(), *get_gitlab_tools()]
+    if phoenix_toolset is not None:
+        tools.append(phoenix_toolset)
 
     agent = Agent(
         name="incident_copilot",

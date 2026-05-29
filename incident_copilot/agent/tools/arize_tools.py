@@ -1,8 +1,43 @@
-"""Arize Phoenix integration for LLM observability — instruments all agent traces."""
+"""Arize Phoenix integration — traces via OpenTelemetry + MCP toolset for trace querying."""
 
 import os
+from typing import Optional
 
 from config import settings
+
+
+def get_phoenix_mcp_toolset() -> Optional[object]:
+    """Return a McpToolset connected to the Arize Phoenix MCP server via npx.
+
+    Returns None if PHOENIX_API_KEY is not configured so the agent still starts
+    in local/dev environments that lack credentials.
+    """
+    if not settings.phoenix_api_key:
+        return None
+
+    from google.adk.tools.mcp_tool.mcp_toolset import (
+        McpToolset,
+        StdioConnectionParams,
+        StdioServerParameters,
+    )
+
+    return McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command="npx",
+                args=[
+                    "-y",
+                    "@arizeai/phoenix-mcp@latest",
+                    "--baseUrl",
+                    settings.phoenix_collector_endpoint,
+                    "--apiKey",
+                    settings.phoenix_api_key,
+                ],
+            ),
+            timeout=60.0,
+        ),
+        tool_name_prefix="phoenix",
+    )
 
 
 def setup_arize_tracing() -> None:
