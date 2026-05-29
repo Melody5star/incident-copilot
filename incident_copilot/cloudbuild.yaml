@@ -19,7 +19,9 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --allow-unauthenticated
-      - --min-instances=1
+      - --min-instances=0
+      - --memory=1Gi
+      - --timeout=300
       - --set-secrets=ELASTIC_CLOUD_ID=elastic-cloud-id:latest,ELASTIC_API_KEY=elastic-api-key:latest,GITLAB_TOKEN=gitlab-token:latest,PHOENIX_API_KEY=phoenix-api-key:latest
 
 substitutions:

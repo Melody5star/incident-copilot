@@ -2,6 +2,16 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install Node.js 18 + npm (required for npx @arizeai/phoenix-mcp at runtime)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pre-install Phoenix MCP server globally so npx uses cache (no cold-start download)
+RUN npm install -g @arizeai/phoenix-mcp@latest
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
